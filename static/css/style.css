@@ -1,0 +1,426 @@
+/* 기본 스타일 - 공식 양식 스타일 */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: '맑은 고딕', 'Malgun Gothic', '바탕', Batang, serif;
+    font-size: 11px;
+    line-height: 1.4;
+    background-color: #f0f0f0;
+    color: #000;
+}
+
+.form-container {
+    width: 210mm;
+    min-height: 297mm;
+    margin: 20px auto;
+    padding: 15mm 15mm 10mm 15mm;
+    background-color: #fff;
+    box-shadow: 0 0 10px rgba(0,0,0,0.3);
+    position: relative;
+}
+
+/* 헤더 */
+.form-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 10px;
+    font-size: 10px;
+}
+
+.header-left {
+    font-weight: bold;
+}
+
+.header-right {
+    text-align: right;
+    font-size: 9px;
+}
+
+/* 제목 */
+.form-title {
+    text-align: center;
+    font-size: 22px;
+    font-weight: bold;
+    margin: 15px 0;
+    letter-spacing: 5px;
+}
+
+.form-notice {
+    font-size: 10px;
+    margin-bottom: 5px;
+}
+
+.page-indicator {
+    text-align: right;
+    font-size: 10px;
+    margin-bottom: 10px;
+}
+
+/* 테이블 스타일 */
+.form-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 0;
+    table-layout: fixed;
+}
+
+.form-table td {
+    border: 1px solid #000;
+    padding: 3px 5px;
+    vertical-align: middle;
+    font-size: 10px;
+    height: 24px;
+}
+
+.form-table .label {
+    background-color: #f8f8f8;
+    font-weight: normal;
+    text-align: center;
+}
+
+.form-table .gray-bg {
+    background-color: #d9d9d9;
+}
+
+.form-table .center {
+    text-align: center;
+}
+
+/* 입력 필드 */
+.form-input {
+    width: 100%;
+    border: none;
+    background: transparent;
+    font-size: 10px;
+    font-family: inherit;
+    padding: 2px;
+    outline: none;
+}
+
+.form-input:focus {
+    background-color: #ffffd0;
+}
+
+.form-input[readonly] {
+    background-color: #f5f5f5;
+}
+
+.form-input.full-width {
+    width: 100%;
+}
+
+/* 체크박스 */
+.checkbox-label {
+    margin-right: 20px;
+    font-size: 11px;
+}
+
+.checkbox-label input[type="checkbox"] {
+    margin-right: 3px;
+}
+
+/* 주소 검색 */
+.address-search-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.address-search-wrapper .form-input {
+    flex: 1;
+    padding-right: 35px;
+}
+
+.btn-search {
+    position: absolute;
+    right: 2px;
+    padding: 2px 6px;
+    font-size: 9px;
+    background-color: #4a90d9;
+    color: #fff;
+    border: none;
+    border-radius: 2px;
+    cursor: pointer;
+}
+
+.btn-search:hover {
+    background-color: #357abd;
+}
+
+/* 동/호수 입력 */
+.dong-ho-wrapper {
+    display: flex;
+    gap: 3px;
+    margin-top: 3px;
+}
+
+.dong-input, .ho-input {
+    width: 40px !important;
+    text-align: center;
+    flex: none;
+}
+
+.btn-search-unit {
+    padding: 2px 5px;
+    font-size: 8px;
+    background-color: #28a745;
+    color: #fff;
+    border: none;
+    border-radius: 2px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.btn-search-unit:hover {
+    background-color: #218838;
+}
+
+.address-results {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #fff;
+    border: 1px solid #ccc;
+    max-height: 150px;
+    overflow-y: auto;
+    z-index: 1000;
+    display: none;
+    font-size: 10px;
+}
+
+.address-results.active {
+    display: block;
+}
+
+.address-item {
+    padding: 5px 8px;
+    cursor: pointer;
+    border-bottom: 1px solid #eee;
+}
+
+.address-item:hover {
+    background-color: #e8f4ff;
+}
+
+.address-item .road {
+    font-size: 10px;
+}
+
+.address-item .jibun {
+    font-size: 9px;
+    color: #666;
+}
+
+.address-no-results {
+    padding: 10px;
+    text-align: center;
+    color: #666;
+}
+
+/* 법률 문구 */
+.legal-text {
+    margin: 20px 0;
+    text-align: center;
+    font-size: 11px;
+    line-height: 1.6;
+}
+
+/* 서명 섹션 */
+.signature-section {
+    margin: 20px 0;
+    text-align: right;
+    padding-right: 50px;
+}
+
+.date-row {
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.date-input {
+    width: 50px;
+    border: none;
+    border-bottom: 1px solid #000;
+    text-align: center;
+    font-size: 11px;
+    font-family: inherit;
+    background: transparent;
+}
+
+.sign-row {
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+.sign-label {
+    margin-right: 20px;
+    font-size: 12px;
+}
+
+.sign-input {
+    width: 120px;
+    border: none;
+    border-bottom: 1px solid #000;
+    margin-right: 10px;
+    font-size: 11px;
+    font-family: inherit;
+    background: transparent;
+}
+
+/* 수신자 */
+.recipient {
+    text-align: left;
+    font-size: 14px;
+    margin: 20px 0;
+}
+
+/* 하단 테이블 */
+.footer-table td {
+    font-size: 9px;
+    line-height: 1.5;
+}
+
+.paper-size {
+    text-align: right;
+    font-size: 9px;
+    margin-top: 10px;
+}
+
+/* 버튼 */
+.button-group {
+    margin-top: 20px;
+    text-align: center;
+    padding: 15px;
+    background-color: #f5f5f5;
+    border-radius: 5px;
+}
+
+.btn {
+    padding: 10px 30px;
+    font-size: 14px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin: 0 10px;
+}
+
+.btn-primary {
+    background-color: #4a90d9;
+    color: #fff;
+}
+
+.btn-primary:hover {
+    background-color: #357abd;
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+    color: #fff;
+}
+
+.btn-secondary:hover {
+    background-color: #5a6268;
+}
+
+/* 로딩 오버레이 */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255,255,255,0.9);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #ddd;
+    border-top-color: #4a90d9;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.loading-overlay p {
+    margin-top: 15px;
+    font-size: 14px;
+    color: #333;
+}
+
+/* 인쇄 스타일 */
+@media print {
+    @page {
+        size: A4;
+        margin: 10mm;
+    }
+
+    body {
+        background-color: #fff;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .form-container {
+        width: 100%;
+        margin: 0;
+        padding: 0;
+        box-shadow: none;
+    }
+
+    .no-print,
+    .btn-search,
+    .address-results,
+    .loading-overlay {
+        display: none !important;
+    }
+
+    .form-input {
+        border: none;
+        background: transparent !important;
+    }
+
+    .form-input:focus {
+        background: transparent !important;
+    }
+
+    .form-table .gray-bg {
+        background-color: #d9d9d9 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .form-table .label {
+        background-color: #f8f8f8 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .address-search-wrapper .form-input {
+        padding-right: 2px;
+    }
+}
+
+/* 화면용 스타일 */
+@media screen {
+    .form-container {
+        margin-top: 30px;
+        margin-bottom: 30px;
+    }
+}
