@@ -21,6 +21,40 @@ def index():
     return render_template('index.html')
 
 
+@app.route('/api/debug')
+def debug_info():
+    """환경변수 및 API 연결 상태 확인"""
+    import os
+    result = {
+        'env_vars': {
+            'ADDRESS_API_KEY': 'SET' if config.ADDRESS_API_KEY else 'NOT SET',
+            'VWORLD_API_KEY': 'SET' if config.VWORLD_API_KEY else 'NOT SET',
+            'BUILDING_API_KEY': 'SET' if config.BUILDING_API_KEY else 'NOT SET',
+        },
+        'api_tests': {}
+    }
+
+    # VWorld API 테스트
+    try:
+        test_url = 'https://api.vworld.kr/ned/data/ladfrlList'
+        test_params = {
+            'key': config.VWORLD_API_KEY,
+            'pnu': '1168010600107060013',  # 테스트용 PNU
+            'format': 'json',
+            'numOfRows': 1,
+            'pageNo': 1
+        }
+        test_resp = requests.get(test_url, params=test_params, timeout=10)
+        result['api_tests']['vworld'] = {
+            'status_code': test_resp.status_code,
+            'response': test_resp.json() if test_resp.status_code == 200 else test_resp.text[:500]
+        }
+    except Exception as e:
+        result['api_tests']['vworld'] = {'error': str(e)}
+
+    return jsonify(result)
+
+
 @app.route('/api/address/jibun')
 def search_jibun():
     """지번주소로 토지정보 검색 (도로명주소 API 활용)"""
