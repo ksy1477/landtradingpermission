@@ -110,6 +110,14 @@ body {
     background-color: #f5f5f5;
 }
 
+/* 여러 줄 표시 필드 (용도지역, 정착물내용) */
+.textarea-field {
+    resize: none;
+    min-height: 36px;
+    line-height: 1.4;
+    overflow: hidden;
+}
+
 .form-input.full-width {
     width: 100%;
 }
