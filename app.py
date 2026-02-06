@@ -81,7 +81,8 @@ def search_jibun():
             for juso in data['results']['juso']:
                 # PNU 코드 생성: 법정동코드(10자리) + 대지/산(1자리) + 본번(4자리) + 부번(4자리)
                 bjd_code = juso.get('admCd', '')
-                mt = '2' if '산' in juso.get('jibunAddr', '') else '1'
+                # mtYn 필드 사용 (0=대지, 1=산) -> PNU는 1=대지, 2=산
+                mt = '2' if juso.get('mtYn', '0') == '1' else '1'
 
                 # 지번 파싱
                 lnbr_mnnm = juso.get('lnbrMnnm', '0').zfill(4)
