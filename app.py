@@ -530,45 +530,53 @@ def get_building_unit():
 
                                 # 동 이름 형식 시도: "103동", "103" 등
                                 dong_variants = [f"{dong_normalized}동", dong_normalized, dong] if dong_normalized else ['']
+                                # 호수 형식 시도: "904", "904호" 등
+                                ho_variants = [ho_normalized, f"{ho_normalized}호", ho] if ho_normalized else ['']
 
+                                found_area = False
                                 for dong_variant in dong_variants:
-                                    area_params = {
-                                        'serviceKey': config.BUILDING_API_KEY,
-                                        'sigunguCd': sigungu_cd,
-                                        'bjdongCd': bjdong_cd,
-                                        'bun': bun,
-                                        'ji': ji,
-                                        'numOfRows': 100,
-                                        'pageNo': 1,
-                                        '_type': 'json'
-                                    }
-                                    # 동/호수 필터 추가
-                                    if dong_variant:
-                                        area_params['dongNm'] = dong_variant
-                                    if ho:
-                                        area_params['hoNm'] = ho
+                                    if found_area:
+                                        break
+                                    for ho_variant in ho_variants:
+                                        if found_area:
+                                            break
+                                        area_params = {
+                                            'serviceKey': config.BUILDING_API_KEY,
+                                            'sigunguCd': sigungu_cd,
+                                            'bjdongCd': bjdong_cd,
+                                            'bun': bun,
+                                            'ji': ji,
+                                            'numOfRows': 100,
+                                            'pageNo': 1,
+                                            '_type': 'json'
+                                        }
+                                        # 동/호수 필터 추가
+                                        if dong_variant:
+                                            area_params['dongNm'] = dong_variant
+                                        if ho_variant:
+                                            area_params['hoNm'] = ho_variant
 
-                                    area_resp = requests.get(area_url, params=area_params, timeout=15)
-                                    area_data = area_resp.json()
+                                        area_resp = requests.get(area_url, params=area_params, timeout=15)
+                                        area_data = area_resp.json()
 
-                                    if 'response' in area_data:
-                                        area_items = area_data.get('response', {}).get('body', {}).get('items', {}).get('item', [])
-                                        if not isinstance(area_items, list):
-                                            area_items = [area_items] if area_items else []
+                                        if 'response' in area_data:
+                                            area_items = area_data.get('response', {}).get('body', {}).get('items', {}).get('item', [])
+                                            if not isinstance(area_items, list):
+                                                area_items = [area_items] if area_items else []
 
-                                        if area_items:
-                                            # 전유 면적 중 가장 큰 것 (전용면적)
-                                            max_area = 0
-                                            for area_item in area_items:
-                                                # 전유(専有) 면적만 선택
-                                                gb = area_item.get('exposPubuseGbCdNm', '')
-                                                if '전유' in gb:
-                                                    area_val = float(area_item.get('area', 0) or 0)
-                                                    if area_val > max_area:
-                                                        max_area = area_val
-                                            if max_area > 0:
-                                                exclusive_area = max_area
-                                                break
+                                            if area_items:
+                                                # 전유 면적 중 가장 큰 것 (전용면적)
+                                                max_area = 0
+                                                for area_item in area_items:
+                                                    # 전유(専有) 면적만 선택
+                                                    gb = area_item.get('exposPubuseGbCdNm', '')
+                                                    if '전유' in gb:
+                                                        area_val = float(area_item.get('area', 0) or 0)
+                                                        if area_val > max_area:
+                                                            max_area = area_val
+                                                if max_area > 0:
+                                                    exclusive_area = max_area
+                                                    found_area = True
                             except Exception as ex:
                                 print(f"건축물대장 추가 조회 오류: {ex}")
 
