@@ -440,6 +440,9 @@ def get_building_unit():
     dong = request.args.get('dong', '')
     ho = request.args.get('ho', '')
 
+    # 디버그 로그
+    print(f"[DEBUG] /api/building/unit called: pnu={pnu}, dong={dong}, ho={ho}")
+
     if not pnu or len(pnu) < 19:
         return jsonify({'error': 'PNU 코드가 필요합니다.'})
 
