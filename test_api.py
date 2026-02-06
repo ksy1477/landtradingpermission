@@ -1,7 +1,7 @@
 import requests
 import config
 
-pnu = "1168010600107060013"
+pnu = "1130510100113530000"  # SK북한산시티 미아동 1353
 
 print("=== VWorld API ===")
 url = 'https://api.vworld.kr/ned/data/buldHoCoList'
