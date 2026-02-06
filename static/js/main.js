@@ -33,7 +33,22 @@ document.addEventListener('DOMContentLoaded', function() {
     initUnitSearch();
     initDateDefault();
     initCalculations();
+    initRightTypeSync();
 });
+
+// 권리 유형 선택 시 관련 필드 자동 매핑
+function initRightTypeSync() {
+    const rightRadios = document.querySelectorAll('input[name="right_type"]');
+    rightRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            // (18) 정착물 권리 종류에 반영
+            const fixture1RightType = document.getElementById('fixture1_right_type');
+            if (fixture1RightType) {
+                fixture1RightType.value = this.value;
+            }
+        });
+    });
+}
 
 // 오늘 날짜 기본값 설정
 function initDateDefault() {
@@ -79,40 +94,80 @@ async function fetchUnitInfo(parcelNum, pnu, dong, ho) {
         const data = await fetchAPI(url);
 
         if (data && !data.error) {
-            // 대지권 지분 / 대지면적 형식으로 면적 표시
-            if (data.land_share && data.land_area) {
-                const landShare = parseFloat(data.land_share).toFixed(4);
-                const landArea = parseFloat(data.land_area).toFixed(2);
-                document.getElementById(`land${parcelNum}_area`).value = `${landShare}/${landArea}`;
+            // 전용면적
+            const exclusiveArea = data.exclusive_area ? parseFloat(data.exclusive_area).toFixed(2) : '';
 
-                // 계약예정금액 면적에도 반영 (대지권 지분만)
+            // VWorld API에서 대지권 비율을 가져온 경우 (source: 'vworld')
+            const isVWorldData = data.source === 'vworld';
+            let landShare = '';  // 대지권 면적
+            let landArea = '';   // 전체 대지면적
+
+            if (isVWorldData && data.land_share) {
+                // VWorld API에서 직접 대지권 비율 제공
+                landShare = data.land_share;
+                landArea = data.land_area || '';
+            } else {
+                // 건축물대장 API fallback
+                landArea = data.land_area ? parseFloat(data.land_area).toFixed(2) : '';
+
+                // 대지권 비율 추정 (전용면적/전체연면적 × 대지면적)
+                if (exclusiveArea && data.total_area && landArea) {
+                    const totalArea = parseFloat(data.total_area);
+                    if (totalArea > 0) {
+                        landShare = (parseFloat(exclusiveArea) / totalArea * parseFloat(landArea)).toFixed(4);
+                    }
+                }
+            }
+
+            // 데이터가 없는 경우 안내
+            if (!landShare && !exclusiveArea) {
+                alert(`${dong || ''}동 ${ho}호 전유부 데이터를 찾을 수 없습니다.\n\n대지권 비율은 등기부등본을 확인하여 직접 입력해주세요.\n(예: 35.9790/36645.30 형식)`);
+            }
+
+            // 면적 필드에 표시 (대지권면적/대지면적)
+            const areaField = document.getElementById(`land${parcelNum}_area`);
+            if (landShare && landArea) {
+                areaField.value = `${landShare}/${landArea}`;
+                if (isVWorldData) {
+                    areaField.title = '대지권면적/대지면적 (VWorld API)';
+                } else {
+                    areaField.title = '대지권면적(추정)/대지면적 - 정확한 값은 등기부등본 확인 필요';
+                }
+            } else if (landShare) {
+                areaField.value = landShare;
+                areaField.title = '대지권면적';
+            } else if (exclusiveArea) {
+                areaField.value = exclusiveArea;
+                areaField.title = '전용면적 - 대지권 비율은 등기부등본 확인 필요';
+            } else if (landArea) {
+                areaField.value = '';
+                areaField.placeholder = `대지권비율 입력 (대지면적: ${landArea}㎡)`;
+            }
+
+            // 계약예정금액 면적에 대지권면적 반영
+            if (landShare) {
                 document.getElementById(`price${parcelNum}_area`).value = landShare;
+            } else if (exclusiveArea) {
+                document.getElementById(`price${parcelNum}_area`).value = exclusiveArea;
             }
 
-            // 건물명 (정착물 종류)
-            if (data.building_name) {
-                const fixtureType = document.querySelector(`[name="fixture${parcelNum}_type"]`);
-                if (fixtureType) {
-                    fixtureType.value = data.building_name;
-                }
-            }
+            // 정착물 내용 (17번) - PRD 형식: "{동}동 {호}호 ({구조}, 전용면적 {면적}㎡)"
+            const fixtureContent = document.getElementById(`fixture${parcelNum}_content`);
+            if (fixtureContent) {
+                const dongText = dong ? `${dong}동 ` : '';
+                const hoText = ho ? `${ho}호` : '';
+                const structureText = data.structure || '철근콘크리트구조';
+                const areaText = exclusiveArea ? `전용면적 ${exclusiveArea}㎡` : '';
 
-            // 구조 (정착물 내용)
-            if (data.structure) {
-                const fixtureContent = document.querySelector(`[name="fixture${parcelNum}_content"]`);
-                if (fixtureContent) {
-                    let content = data.structure;
-                    if (data.ground_floor) {
-                        content += `, 지상 ${data.ground_floor}층`;
+                let content = `${dongText}${hoText}`;
+                if (structureText || areaText) {
+                    content += ` (${structureText}`;
+                    if (areaText) {
+                        content += `, ${areaText}`;
                     }
-                    if (data.underground_floor && data.underground_floor !== '0') {
-                        content += `, 지하 ${data.underground_floor}층`;
-                    }
-                    if (data.exclusive_area) {
-                        content += `, 전용 ${parseFloat(data.exclusive_area).toFixed(2)}㎡`;
-                    }
-                    fixtureContent.value = content;
+                    content += ')';
                 }
+                fixtureContent.value = content.trim();
             }
 
             // 금액 계산
@@ -274,12 +329,9 @@ async function fetchLandInfo(parcelNum, pnu) {
             document.getElementById(`price${parcelNum}_unit`).value = priceInfo.price;
         }
 
-        // 용도지역
+        // 용도지역 (용도지구 제외)
         if (usageInfo && !usageInfo.error) {
-            const usageText = [
-                ...(usageInfo.usage_areas || []),
-                ...(usageInfo.usage_districts || [])
-            ].join(', ');
+            const usageText = (usageInfo.usage_areas || []).join(', ');
             document.getElementById(`land${parcelNum}_usage`).value = usageText;
         }
 
@@ -315,14 +367,20 @@ function showLoading(show) {
 // 계산 초기화
 function initCalculations() {
     // 면적 입력 변경 시 계산
-    for (let i = 1; i <= 3; i++) {
-        const areaInput = document.getElementById(`land${i}_area`);
-        if (areaInput) {
-            areaInput.addEventListener('input', function() {
-                document.getElementById(`price${i}_area`).value = this.value;
-                calculatePrices();
-            });
-        }
+    const areaInput = document.getElementById('land1_area');
+    if (areaInput) {
+        areaInput.addEventListener('input', function() {
+            document.getElementById('price1_area').value = this.value;
+            calculatePrices();
+        });
+    }
+
+    // 30번 매매대금 입력 시 29번 자동 계산
+    const totalInput = document.getElementById('price1_total');
+    if (totalInput) {
+        totalInput.addEventListener('input', function() {
+            calculatePrices();
+        });
     }
 }
 
@@ -340,40 +398,26 @@ function parseArea(areaStr) {
 
 // 금액 계산
 function calculatePrices() {
-    let totalArea = 0;
-    let totalLandAmount = 0;
-    let totalFixtureAmount = 0;
+    // price 테이블의 면적 (대지권 지분)
+    const priceArea = parseFloat(document.getElementById('price1_area').value) || 0;
+    // 토지 테이블의 면적 (지분/면적 형식일 수 있음)
+    const landAreaStr = document.getElementById('land1_area').value;
+    const area = priceArea || parseArea(landAreaStr);
 
-    for (let i = 1; i <= 3; i++) {
-        // price 테이블의 면적 (대지권 지분)
-        const priceArea = parseFloat(document.getElementById(`price${i}_area`).value) || 0;
-        // 토지 테이블의 면적 (지분/면적 형식일 수 있음)
-        const landAreaStr = document.getElementById(`land${i}_area`).value;
-        const area = priceArea || parseArea(landAreaStr);
+    const unitPrice = parseFloat(document.getElementById('price1_unit').value) || 0;
+    const landTotal = Math.round(area * unitPrice);
 
-        const unitPrice = parseFloat(document.getElementById(`price${i}_unit`).value) || 0;
-        const landTotal = Math.round(area * unitPrice);
+    // 27번: 토지 예정금액
+    document.getElementById('price1_land_total').value = landTotal > 0 ? formatNumber(landTotal) : '';
 
-        // 토지 예정금액
-        document.getElementById(`price${i}_land_total`).value = landTotal > 0 ? formatNumber(landTotal) : '';
+    // 30번: 매매대금 (사용자 입력)
+    const totalInput = parseNumber(document.getElementById('price1_total').value) || 0;
 
-        // 정착물 금액
-        const fixtureAmount = parseNumber(document.querySelector(`[name="price${i}_fixture_amount"]`)?.value) || 0;
-
-        // 예정금액합계
-        const rowTotal = landTotal + fixtureAmount;
-        document.getElementById(`price${i}_total`).value = rowTotal > 0 ? formatNumber(rowTotal) : '';
-
-        totalArea += area;
-        totalLandAmount += landTotal;
-        totalFixtureAmount += fixtureAmount;
+    // 29번: 정착물 예정금액 = 30번(매매대금) - 27번(토지예정금액)
+    if (totalInput > 0) {
+        const fixtureAmount = totalInput - landTotal;
+        document.querySelector('[name="price1_fixture_amount"]').value = fixtureAmount > 0 ? formatNumber(fixtureAmount) : '';
     }
-
-    // 합계
-    document.getElementById('total_area').value = totalArea > 0 ? totalArea.toFixed(4) : '';
-    document.getElementById('total_land_amount').value = totalLandAmount > 0 ? formatNumber(totalLandAmount) : '';
-    document.getElementById('total_fixture_amount').value = totalFixtureAmount > 0 ? formatNumber(totalFixtureAmount) : '';
-    document.getElementById('grand_total').value = (totalLandAmount + totalFixtureAmount) > 0 ? formatNumber(totalLandAmount + totalFixtureAmount) : '';
 }
 
 // 폼 초기화 시 처리
@@ -382,6 +426,79 @@ document.addEventListener('reset', function(e) {
         setTimeout(() => {
             initDateDefault();
             calculatePrices();
+            // 고정값 복원
+            document.getElementById('fixture1_type').value = '아파트';
+            document.getElementById('fixture1_right_type').value = '소유권';
+            document.getElementById('fixture1_right_content').value = '매매';
+            document.getElementById('transfer1_type').value = '매매';
         }, 10);
     }
 });
+
+// PDF 다운로드 함수
+async function downloadPDF() {
+    showLoading(true);
+
+    try {
+        // 폼 데이터 수집
+        const formData = collectFormData();
+
+        const response = await fetch('/api/generate-pdf', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData)
+        });
+
+        if (!response.ok) {
+            throw new Error('PDF 생성 실패');
+        }
+
+        // PDF 다운로드
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+
+        // 파일명 생성: 토지거래계약허가신청서_{주소}_{날짜}.pdf
+        const address = document.getElementById('land1_address').value || '신청서';
+        const shortAddr = address.split(' ').slice(0, 2).join('');
+        const today = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+        a.download = `토지거래계약허가신청서_${shortAddr}_${today}.pdf`;
+
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+
+    } catch (error) {
+        console.error('PDF 다운로드 오류:', error);
+        alert('PDF 생성 중 오류가 발생했습니다. 인쇄 기능을 이용해주세요.');
+    } finally {
+        showLoading(false);
+    }
+}
+
+// 폼 데이터 수집
+function collectFormData() {
+    const form = document.getElementById('landPermitForm');
+    const formData = {};
+
+    // 모든 input 필드 수집
+    form.querySelectorAll('input').forEach(input => {
+        if (input.type === 'radio') {
+            if (input.checked) {
+                formData[input.name] = input.value;
+            }
+        } else if (input.type === 'checkbox') {
+            if (input.checked) {
+                formData[input.name] = input.value;
+            }
+        } else {
+            formData[input.name || input.id] = input.value;
+        }
+    });
+
+    return formData;
+}

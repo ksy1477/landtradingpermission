@@ -124,6 +124,17 @@ body {
     margin-right: 3px;
 }
 
+/* 라디오 버튼 */
+.radio-label {
+    margin-right: 20px;
+    font-size: 11px;
+    cursor: pointer;
+}
+
+.radio-label input[type="radio"] {
+    margin-right: 3px;
+}
+
 /* 주소 검색 */
 .address-search-wrapper {
     position: relative;
@@ -328,6 +339,16 @@ body {
 
 .btn-secondary:hover {
     background-color: #5a6268;
+}
+
+.btn-outline {
+    background-color: #fff;
+    color: #333;
+    border: 1px solid #ccc;
+}
+
+.btn-outline:hover {
+    background-color: #f5f5f5;
 }
 
 /* 로딩 오버레이 */
